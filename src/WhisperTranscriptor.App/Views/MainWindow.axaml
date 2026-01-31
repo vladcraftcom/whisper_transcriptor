@@ -1,0 +1,84 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:WhisperTranscriptor.App.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="WhisperTranscriptor.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Whisper Transcriptor">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" ColumnDefinitions="Auto,*,Auto" Margin="16" RowSpacing="10" ColumnSpacing="10">
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="3"
+                   Text="Локальная транскрибация Whisper (файлы → txt). Требуется установленный ffmpeg в PATH."
+                   Opacity="0.85" TextWrapping="Wrap" />
+
+        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="Аудиофайл:" />
+        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AudioPath}" IsReadOnly="True"/>
+        <Button Grid.Row="1" Grid.Column="2" Content="Выбрать…" Click="SelectAudio_Click"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="Модель:" />
+        <ComboBox Grid.Row="2" Grid.Column="1"
+                  ItemsSource="{Binding Models}"
+                  SelectedItem="{Binding SelectedModel}" />
+        <Button Grid.Row="2" Grid.Column="2" Content="Скачать/проверить" Command="{Binding DownloadModelCommand}" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Text="Язык:" />
+        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Language}" Watermark="ru / auto / en / ..." />
+        <TextBlock Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Opacity="0.8" Text="auto = автоопределение"/>
+
+        <TextBlock Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Text="Опции:" />
+        <CheckBox Grid.Row="4" Grid.Column="1"
+                  IsChecked="{Binding RemoveSilence}"
+                  Content="Удалять тишину (рекомендуется при длинных паузах)"
+                  VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="4" Grid.Column="2" VerticalAlignment="Center" Opacity="0.8" Text="через ffmpeg"/>
+
+        <TextBlock Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Text="Выходной txt:" />
+        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding OutputTextPath}" IsReadOnly="True"/>
+        <Button Grid.Row="5" Grid.Column="2" Content="Сохранить как…" Click="SelectOutput_Click"/>
+
+        <Grid Grid.Row="6" Grid.ColumnSpan="3" RowDefinitions="*,*" ColumnDefinitions="*"
+              RowSpacing="10" ClipToBounds="True">
+            <Border Grid.Row="0" Padding="10" BorderThickness="1" CornerRadius="6">
+                <Grid RowDefinitions="Auto,*" RowSpacing="6">
+                    <TextBlock Grid.Row="0" Text="Результат (превью)" FontWeight="SemiBold" />
+                    <TextBox Grid.Row="1"
+                             Text="{Binding LastResultPreview}"
+                             AcceptsReturn="True"
+                             IsReadOnly="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             ClipToBounds="True" />
+                </Grid>
+            </Border>
+            <Border Grid.Row="1" Padding="10" BorderThickness="1" CornerRadius="6">
+                <Grid RowDefinitions="Auto,*" RowSpacing="6">
+                    <TextBlock Grid.Row="0" Text="Лог" FontWeight="SemiBold" />
+                    <TextBox Grid.Row="1"
+                             Text="{Binding Log}"
+                             AcceptsReturn="True"
+                             IsReadOnly="True"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             ClipToBounds="True" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <StackPanel Grid.Row="7" Grid.ColumnSpan="3" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+            <TextBlock Text="{Binding Status}" VerticalAlignment="Center" Opacity="0.9" Margin="0,0,10,0" />
+            <Button Content="Отмена" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}" />
+            <Button Content="Транскрибировать" Command="{Binding TranscribeCommand}" />
+        </StackPanel>
+    </Grid>
+
+</Window>
