@@ -1,11 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <!-- На Windows нужен GUI-subsystem + manifest, иначе NativeControlHost (LibVLC VideoView) может падать -->
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Важно: иначе корневой проект подхватывает src/** и компилирует всё подряд -->
     <EnableDefaultItems>false</EnableDefaultItems>
+    <!-- Используем тот же Windows-manifest, что и у Avalonia-приложения -->
+    <ApplicationManifest Condition="'$(OS)' == 'Windows_NT'">src\WhisperTranscriptor.App\app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WhisperTranscriptor.App.ViewModels"
+             xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
+             xmlns:dg="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignWidth="1100" d:DesignHeight="700"
+             x:Class="WhisperTranscriptor.App.Views.VideoTabView"
+             x:DataType="vm:VideoTabViewModel">
+
+  <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="2*,*" Margin="16" RowSpacing="10" ColumnSpacing="12">
+    <!-- Top bar -->
+    <Grid Grid.Row="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="10">
+      <Button Grid.Column="0" Content="Выбрать видео…" Click="SelectVideo_Click"/>
+
+      <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Модель:"/>
+      <ComboBox Grid.Column="2" Width="160"
+                ItemsSource="{Binding Models}"
+                SelectedItem="{Binding SelectedModel}" />
+
+      <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="Язык:"/>
+      <TextBox Grid.Column="4" Width="80" Text="{Binding Language}" Watermark="en"/>
+
+      <CheckBox Grid.Column="5" VerticalAlignment="Center"
+                IsChecked="{Binding RemoveSilence}"
+                Content="Удалять тишину (может сломать тайминги)"/>
+
+      <Button Grid.Column="6" Content="Субтитры → (re)generate" Command="{Binding GenerateSubtitlesCommand}"/>
+
+      <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button Content="Загрузить .srt/.vtt…" Click="LoadSubs_Click"/>
+        <Button Content="Сохранить в subs/" Command="{Binding SaveSubtitlesCommand}"/>
+        <Button Content="Отмена" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}"/>
+      </StackPanel>
+    </Grid>
+
+    <!-- Left: video + overlay -->
+    <Grid Grid.Row="1" Grid.Column="0" RowDefinitions="*,Auto,Auto" RowSpacing="8">
+      <Border Grid.Row="0" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+        <Grid>
+          <vlc:VideoView MediaPlayer="{Binding Player}" />
+
+          <!-- Overlay subtitles (YouTube-style) -->
+          <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="24" Padding="12,8"
+                  Background="#AA000000" CornerRadius="6" MaxWidth="900">
+            <TextBlock Text="{Binding ActiveSubtitleText}" Foreground="White"
+                       TextWrapping="Wrap" FontSize="22" TextAlignment="Center"/>
+          </Border>
+        </Grid>
+      </Border>
+
+      <!-- Timeline -->
+      <Slider Grid.Row="1" Minimum="0" Maximum="{Binding DurationSeconds}" Value="{Binding PositionSeconds}"
+              ValueChanged="Timeline_ValueChanged"
+              PointerPressed="Timeline_PointerPressed"
+              PointerReleased="Timeline_PointerReleased"/>
+      <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <Button Content="Play/Pause" Command="{Binding TogglePlayPauseCommand}" />
+        <TextBlock Text="{Binding Status}" Opacity="0.9" />
+        <TextBlock Text="{Binding VideoPath}" Opacity="0.7" TextTrimming="CharacterEllipsis" />
+      </StackPanel>
+    </Grid>
+
+    <!-- Right: subtitle editor -->
+    <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto,*,Auto" RowSpacing="8">
+      <TextBlock Grid.Row="0" Text="Сегменты субтитров" FontWeight="SemiBold"/>
+
+      <dg:DataGrid Grid.Row="1"
+                   ItemsSource="{Binding Segments}"
+                   SelectedItem="{Binding SelectedSegment}"
+                   AutoGenerateColumns="False"
+                   CanUserResizeColumns="True"
+                   CanUserSortColumns="False"
+                   GridLinesVisibility="All">
+        <dg:DataGrid.Columns>
+          <dg:DataGridTextColumn Header="Start" Binding="{Binding StartText}" Width="110"/>
+          <dg:DataGridTextColumn Header="End" Binding="{Binding EndText}" Width="110"/>
+          <dg:DataGridTextColumn Header="Text" Binding="{Binding Text}" Width="*"/>
+        </dg:DataGrid.Columns>
+      </dg:DataGrid>
+
+      <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+        <Button Content="-100ms" Command="{Binding NudgeSelectedMinus100msCommand}"/>
+        <Button Content="+100ms" Command="{Binding NudgeSelectedPlus100msCommand}"/>
+        <Button Content="-500ms" Command="{Binding NudgeSelectedMinus500msCommand}"/>
+        <Button Content="+500ms" Command="{Binding NudgeSelectedPlus500msCommand}"/>
+        <Button Content="Seek to сегмент" Click="SeekToSelected_Click" />
+      </StackPanel>
+    </Grid>
+
+    <!-- Bottom: compact log -->
+    <Expander Grid.Row="2" Grid.ColumnSpan="2"
+              Header="Лог"
+              IsExpanded="False">
+      <Border Padding="10" BorderThickness="1" CornerRadius="6">
+        <TextBox Height="140"
+                 Text="{Binding Log}"
+                 AcceptsReturn="True"
+                 IsReadOnly="True"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ClipToBounds="True" />
+      </Border>
+    </Expander>
+  </Grid>
+</UserControl>
+
